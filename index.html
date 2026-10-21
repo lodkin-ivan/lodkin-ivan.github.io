@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="C65 Cam">
+<meta name="theme-color" content="#1b1d22">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<title>Siemens C65 Camera</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="phone">
+  <div id="earpiece"></div>
+  <div id="screen">
+    <div id="statusbar">
+      <span id="signal">▂▄▆█</span>
+      <span id="clock">12:00</span>
+      <span id="battery"><i></i><i></i><i></i></span>
+    </div>
+    <div id="viewfinder">
+      <canvas id="view"></canvas>
+      <div id="flash"></div>
+      <div id="hud">
+        <span id="hudRes">VGA</span>
+        <span id="hudZoom">1x</span>
+      </div>
+      <div id="reticle"></div>
+      <div id="menu" hidden></div>
+      <div id="gallery" hidden></div>
+      <div id="start">
+        <div class="logo">SIEMENS</div>
+        <button id="startBtn">Камера</button>
+        <p id="err"></p>
+      </div>
+    </div>
+    <div id="softkeys">
+      <button id="skLeft">Опции</button>
+      <button id="skRight">Галерея</button>
+    </div>
+  </div>
+  <div id="controls">
+    <button id="zoomIn" aria-label="Zoom in">▲</button>
+    <button id="shutter" aria-label="Снять"><span></span></button>
+    <button id="zoomOut" aria-label="Zoom out">▼</button>
+  </div>
+</div>
+<video id="video" playsinline muted autoplay></video>
+<script src="presets.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
