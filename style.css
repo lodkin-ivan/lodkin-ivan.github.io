@@ -77,3 +77,4 @@ body {
 #gallery { z-index: 2; }
 #photoView { z-index: 3; }
 #menu { z-index: 4; }
+#gallery img.sel { outline: 2px solid var(--amber); outline-offset: -2px; }

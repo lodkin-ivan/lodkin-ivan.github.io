@@ -178,23 +178,44 @@
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
   }
 
-  // меню снимка: Сохранить / Удалить
-  const photoMenu = ['Сохранить', 'Удалить'];
+  // меню снимка: из галереи — Открыть / Сохранить / Удалить, из просмотра — Сохранить / Удалить
+  const photoMenuList = () => state.menuFrom === 'gallery' ? ['Открыть', 'Сохранить', 'Удалить'] : ['Сохранить', 'Удалить'];
   function renderPhotoMenu() {
     const el = $('menu');
     el.innerHTML = '<div class="title">Снимок</div>';
-    photoMenu.forEach((t, i) => {
+    photoMenuList().forEach((t, i) => {
       const d = document.createElement('div'); d.className = 'item' + (i === state.menuIdx ? ' sel' : '');
       d.textContent = t; d.onclick = () => { state.menuIdx = i; photoMenuSelect(); };
       el.appendChild(d);
     });
   }
-  function openPhotoMenu() { state.screen = 'photomenu'; state.menuIdx = 0; renderPhotoMenu(); $('menu').hidden = false; setSoft('Выбор', 'Назад'); }
-  function closePhotoMenu() { $('menu').hidden = true; state.screen = 'photo'; setSoft('Опции', 'Назад'); }
-  function photoMenuSelect() {
-    if (state.menuIdx === 0) { closePhotoMenu(); savePhoto(); return; }
-    const g = loadGallery(); g.splice(state.photoIdx, 1); storeGallery(g);
-    $('menu').hidden = true; closePhoto();
+  function openPhotoMenu() {
+    if (state.screen === 'gallery' && !loadGallery().length) return;
+    state.menuFrom = state.screen; state.screen = 'photomenu'; state.menuIdx = 0;
+    renderPhotoMenu(); $('menu').hidden = false; setSoft('Выбор', 'Назад');
+  }
+  function closePhotoMenu() {
+    $('menu').hidden = true; state.screen = state.menuFrom;
+    if (state.screen === 'gallery') setSoft('Опции', 'Назад'); else setSoft('Опции', 'Назад');
+  }
+  async function openFromGallery(idx) {
+    const u = loadGallery()[idx]; if (!u) return;
+    state.frozen = { url: u, blob: await (await fetch(u)).blob() }; showPhoto(u, idx);
+  }
+  async function photoMenuSelect() {
+    const fromGallery = state.menuFrom === 'gallery';
+    const idx = fromGallery ? state.galIdx : state.photoIdx;
+    const action = photoMenuList()[state.menuIdx];
+    $('menu').hidden = true; state.screen = state.menuFrom;
+    if (action === 'Открыть') { await openFromGallery(idx); return; }
+    if (action === 'Сохранить') {
+      if (fromGallery) { const u = loadGallery()[idx]; state.frozen = { url: u, blob: await (await fetch(u)).blob() }; }
+      setSoft('Опции', 'Назад'); await savePhoto(); return;
+    }
+    const g = loadGallery(); g.splice(idx, 1); storeGallery(g);
+    state.galIdx = Math.max(0, Math.min(state.galIdx, g.length - 1));
+    if (fromGallery) { openGallery(); return; }
+    closePhoto();
     if (galleryOpen) openGallery();
   }
 
@@ -202,7 +223,7 @@
     state.frozen = null;
     const pv = $('photoView'); if (pv) pv.hidden = true;
     state.screen = galleryOpen ? 'gallery' : 'live';
-    if (galleryOpen) { setSoft('', 'Назад'); } else setSoft('Опции', 'Галерея');
+    if (galleryOpen) { setSoft('Опции', 'Назад'); } else setSoft('Опции', 'Галерея');
   }
 
   // ---------- галерея ----------
@@ -220,9 +241,17 @@
     const g = loadGallery(), el = $('gallery');
     el.innerHTML = '<div class="title">Галерея</div>' + (g.length ? '<div class="grid"></div>' : '<div class="empty">Нет снимков</div>');
     const grid = el.querySelector('.grid');
-    g.forEach((u, idx) => { const im = document.createElement('img'); im.src = u; im.onclick = async () => {
-      state.frozen = { url: u, blob: await (await fetch(u)).blob() }; showPhoto(u, idx); }; grid && grid.appendChild(im); });
-    el.hidden = false; setSoft('', 'Назад');
+    state.galIdx = Math.max(0, Math.min(state.galIdx || 0, g.length - 1));
+    g.forEach((u, idx) => {
+      const im = document.createElement('img'); im.src = u;
+      if (idx === state.galIdx) im.className = 'sel';
+      im.onclick = () => {
+        if (state.galIdx === idx) { openFromGallery(idx); return; }
+        grid.querySelectorAll('img').forEach((n, k) => n.classList.toggle('sel', k === idx)); state.galIdx = idx;
+      };
+      grid.appendChild(im);
+    });
+    el.hidden = false; setSoft(g.length ? 'Опции' : '', 'Назад');
   }
   function closeGallery() { galleryOpen = false; $('gallery').hidden = true; state.screen = 'live'; setSoft('Опции', 'Галерея'); }
 
@@ -259,12 +288,12 @@
 
   $('startBtn').onclick = startCamera;
   $('shutter').onclick = capture;
-  $('zoomIn').onclick = () => state.screen === 'photomenu' ? (state.menuIdx = (state.menuIdx + 1) % 2, renderPhotoMenu()) : state.screen === 'menu' ? (state.menuIdx = (state.menuIdx + 2) % 3, renderMenu()) : setZoom(state.zoom + 0.5);
-  $('zoomOut').onclick = () => state.screen === 'photomenu' ? (state.menuIdx = (state.menuIdx + 1) % 2, renderPhotoMenu()) : state.screen === 'menu' ? (state.menuIdx = (state.menuIdx + 1) % 3, renderMenu()) : setZoom(state.zoom - 0.5);
+  $('zoomIn').onclick = () => state.screen === 'photomenu' ? (state.menuIdx = (state.menuIdx + photoMenuList().length - 1) % photoMenuList().length, renderPhotoMenu()) : state.screen === 'menu' ? (state.menuIdx = (state.menuIdx + 2) % 3, renderMenu()) : setZoom(state.zoom + 0.5);
+  $('zoomOut').onclick = () => state.screen === 'photomenu' ? (state.menuIdx = (state.menuIdx + 1) % photoMenuList().length, renderPhotoMenu()) : state.screen === 'menu' ? (state.menuIdx = (state.menuIdx + 1) % 3, renderMenu()) : setZoom(state.zoom - 0.5);
   $('skLeft').onclick = () => {
     if (state.screen === 'live') openMenu();
     else if (state.screen === 'menu') menuSelect();
-    else if (state.screen === 'photo') openPhotoMenu();
+    else if (state.screen === 'photo' || state.screen === 'gallery') openPhotoMenu();
     else if (state.screen === 'photomenu') photoMenuSelect();
   };
   $('skRight').onclick = () => {
