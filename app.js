@@ -98,7 +98,7 @@
 
   function stampDate(ctx, w, h) {
     const t = new Date(), p = (n) => String(n).padStart(2, '0');
-    ctx.font = `bold ${Math.round(h / 22)}px "Courier New", monospace`;
+    ctx.font = `${Math.round(h / 14)}px "VT323", monospace`;
     ctx.fillStyle = P.stampColor; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
     ctx.fillText(`${p(t.getDate())}.${p(t.getMonth() + 1)}.${t.getFullYear()}`, w - 8, h - 6);
   }
@@ -153,18 +153,18 @@
       reader.onload = () => {
         state.frozen = { blob, url: reader.result };
         pushGallery(reader.result);
-        showPhoto(reader.result);
+        showPhoto(reader.result, 0);
       };
       reader.readAsDataURL(blob);
     }, 'image/jpeg', P.jpegQuality);
   }
 
-  function showPhoto(url) {
-    state.screen = 'photo';
+  function showPhoto(url, idx) {
+    state.screen = 'photo'; state.photoIdx = idx;
     let pv = $('photoView');
     if (!pv) { pv = document.createElement('div'); pv.id = 'photoView'; pv.appendChild(document.createElement('img')); $('viewfinder').appendChild(pv); }
     pv.firstChild.src = url; pv.hidden = false;
-    setSoft('Сохр.', 'Назад');
+    setSoft('Опции', 'Назад');
   }
 
   async function savePhoto() {
@@ -176,6 +176,26 @@
       if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); return; }
     } catch (e) { if (e.name === 'AbortError') return; }
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  }
+
+  // меню снимка: Сохранить / Удалить
+  const photoMenu = ['Сохранить', 'Удалить'];
+  function renderPhotoMenu() {
+    const el = $('menu');
+    el.innerHTML = '<div class="title">Снимок</div>';
+    photoMenu.forEach((t, i) => {
+      const d = document.createElement('div'); d.className = 'item' + (i === state.menuIdx ? ' sel' : '');
+      d.textContent = t; d.onclick = () => { state.menuIdx = i; photoMenuSelect(); };
+      el.appendChild(d);
+    });
+  }
+  function openPhotoMenu() { state.screen = 'photomenu'; state.menuIdx = 0; renderPhotoMenu(); $('menu').hidden = false; setSoft('Выбор', 'Назад'); }
+  function closePhotoMenu() { $('menu').hidden = true; state.screen = 'photo'; setSoft('Опции', 'Назад'); }
+  function photoMenuSelect() {
+    if (state.menuIdx === 0) { closePhotoMenu(); savePhoto(); return; }
+    const g = loadGallery(); g.splice(state.photoIdx, 1); storeGallery(g);
+    $('menu').hidden = true; closePhoto();
+    if (galleryOpen) openGallery();
   }
 
   function closePhoto() {
@@ -190,16 +210,18 @@
   const GKEY = 'c65gallery';
   function loadGallery() { try { return JSON.parse(localStorage.getItem(GKEY)) || []; } catch (_) { return []; } }
   function pushGallery(url) {
-    const g = loadGallery(); g.unshift(url);
-    while (g.length) { try { localStorage.setItem(GKEY, JSON.stringify(g)); break; } catch (_) { g.pop(); } }
+    const g = loadGallery(); g.unshift(url); storeGallery(g);
+  }
+  function storeGallery(g) {
+    while (true) { try { localStorage.setItem(GKEY, JSON.stringify(g)); break; } catch (_) { if (!g.length) break; g.pop(); } }
   }
   function openGallery() {
     galleryOpen = true; state.screen = 'gallery';
     const g = loadGallery(), el = $('gallery');
     el.innerHTML = '<div class="title">Галерея</div>' + (g.length ? '<div class="grid"></div>' : '<div class="empty">Нет снимков</div>');
     const grid = el.querySelector('.grid');
-    g.forEach((u) => { const im = document.createElement('img'); im.src = u; im.onclick = async () => {
-      state.frozen = { url: u, blob: await (await fetch(u)).blob() }; showPhoto(u); }; grid && grid.appendChild(im); });
+    g.forEach((u, idx) => { const im = document.createElement('img'); im.src = u; im.onclick = async () => {
+      state.frozen = { url: u, blob: await (await fetch(u)).blob() }; showPhoto(u, idx); }; grid && grid.appendChild(im); });
     el.hidden = false; setSoft('', 'Назад');
   }
   function closeGallery() { galleryOpen = false; $('gallery').hidden = true; state.screen = 'live'; setSoft('Опции', 'Галерея'); }
@@ -237,18 +259,20 @@
 
   $('startBtn').onclick = startCamera;
   $('shutter').onclick = capture;
-  $('zoomIn').onclick = () => state.screen === 'menu' ? (state.menuIdx = (state.menuIdx + 2) % 3, renderMenu()) : setZoom(state.zoom + 0.5);
-  $('zoomOut').onclick = () => state.screen === 'menu' ? (state.menuIdx = (state.menuIdx + 1) % 3, renderMenu()) : setZoom(state.zoom - 0.5);
+  $('zoomIn').onclick = () => state.screen === 'photomenu' ? (state.menuIdx = (state.menuIdx + 1) % 2, renderPhotoMenu()) : state.screen === 'menu' ? (state.menuIdx = (state.menuIdx + 2) % 3, renderMenu()) : setZoom(state.zoom + 0.5);
+  $('zoomOut').onclick = () => state.screen === 'photomenu' ? (state.menuIdx = (state.menuIdx + 1) % 2, renderPhotoMenu()) : state.screen === 'menu' ? (state.menuIdx = (state.menuIdx + 1) % 3, renderMenu()) : setZoom(state.zoom - 0.5);
   $('skLeft').onclick = () => {
     if (state.screen === 'live') openMenu();
     else if (state.screen === 'menu') menuSelect();
-    else if (state.screen === 'photo') savePhoto();
+    else if (state.screen === 'photo') openPhotoMenu();
+    else if (state.screen === 'photomenu') photoMenuSelect();
   };
   $('skRight').onclick = () => {
     if (state.screen === 'live') openGallery();
     else if (state.screen === 'menu') closeMenu();
     else if (state.screen === 'gallery') closeGallery();
     else if (state.screen === 'photo') closePhoto();
+    else if (state.screen === 'photomenu') closePhotoMenu();
   };
 
   // pinch-to-zoom
@@ -260,6 +284,7 @@
 
   // часы
   function tick() { const t = new Date(); $('clock').textContent = String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0'); }
+  if (document.fonts) document.fonts.load('16px VT323');
   tick(); setInterval(tick, 20000); updateHud();
 
   document.addEventListener('visibilitychange', () => {

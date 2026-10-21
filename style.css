@@ -1,8 +1,11 @@
+@font-face { font-family: "Pixelify Sans"; src: url(fonts/pixelify-lat.woff2) format("woff2"); font-weight: 400 700; font-display: block; unicode-range: U+0000-00FF, U+0131, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212; }
+@font-face { font-family: "Pixelify Sans"; src: url(fonts/pixelify-cyr.woff2) format("woff2"); font-weight: 400 700; font-display: block; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "VT323"; src: url(fonts/vt323-lat.woff2) format("woff2"); font-display: block; }
 :root {
   --lcd-bg: #0c1a2b;
   --siemens: #00a0c6;
   --amber: #ff9a1f;
-  font-family: "Courier New", ui-monospace, monospace;
+  font-family: "Pixelify Sans", ui-monospace, monospace;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 html, body { margin: 0; height: 100%; background: #111; overflow: hidden; overscroll-behavior: none; }
@@ -31,8 +34,9 @@ body {
   box-shadow: 0 0 0 2px #50565f;
 }
 #statusbar {
+  font-family: "VT323", monospace; image-rendering: pixelated;
   flex: none; display: flex; justify-content: space-between; align-items: center;
-  padding: 2px 6px; font-size: 11px; color: #fff; background: linear-gradient(#0089ad, #00698a);
+  padding: 2px 6px; font-size: 15px; color: #fff; background: linear-gradient(#0089ad, #00698a);
 }
 #battery { display: inline-flex; gap: 1px; padding: 1px; border: 1px solid #fff; }
 #battery i { width: 3px; height: 7px; background: #fff; display: block; }
@@ -42,7 +46,7 @@ body {
 #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
 #flash.on { opacity: .85; transition: none; }
 #flash.off { transition: opacity .25s; }
-#hud { position: absolute; left: 6px; right: 6px; top: 4px; display: flex; justify-content: space-between; font-size: 12px; color: #fff; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; pointer-events: none; }
+#hud { font-family: "VT323", monospace; font-size: 16px; position: absolute; left: 6px; right: 6px; top: 4px; display: flex; justify-content: space-between; color: #fff; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; pointer-events: none; }
 #reticle { position: absolute; width: 30%; aspect-ratio: 4/3; border: 1px dashed rgba(255,255,255,.55); pointer-events: none; }
 
 #menu, #gallery { position: absolute; inset: 0; background: var(--lcd-bg); color: #fff; overflow-y: auto; font-size: 14px; }
@@ -56,12 +60,12 @@ body {
 #photoView img { width: 100%; image-rendering: pixelated; }
 
 #start { position: absolute; inset: 0; background: radial-gradient(circle at 50% 35%, #0a6d8d, #052133); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; color: #fff; }
-#start .logo { font: bold 28px "Arial Black", Arial, sans-serif; letter-spacing: 3px; color: #fff; text-shadow: 0 2px 0 #004a62; }
-#start button { background: linear-gradient(#25c4e6, #0089ad); color: #00121c; border: 2px solid #fff; border-radius: 4px; font: bold 18px inherit; font-family: inherit; padding: 10px 28px; }
+#start .logo { font-weight: bold; font-size: 28px; letter-spacing: 3px; color: #fff; text-shadow: 0 2px 0 #004a62; }
+#start button { background: linear-gradient(#25c4e6, #0089ad); color: #00121c; border: 2px solid #fff; border-radius: 4px; font-weight: bold; font-size: 18px; font-family: inherit; padding: 10px 28px; }
 #err { color: #ffb36b; font-size: 12px; text-align: center; padding: 0 14px; margin: 0; min-height: 1em; }
 
 #softkeys { flex: none; display: flex; justify-content: space-between; background: linear-gradient(#0a2740, #05121f); padding: 3px 4px; }
-#softkeys button { background: none; border: 0; color: #fff; font: bold 14px inherit; font-family: inherit; padding: 6px 8px; }
+#softkeys button { background: none; border: 0; color: #fff; font-weight: bold; font-size: 14px; font-family: inherit; padding: 6px 8px; }
 #softkeys button:active { color: var(--amber); }
 
 #controls { flex: none; display: flex; align-items: center; justify-content: center; gap: 12%; width: 100%; height: 17%; }

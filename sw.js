@@ -1,5 +1,5 @@
-const CACHE = 'c65-v1';
-const FILES = ['./', 'index.html', 'style.css', 'app.js', 'presets.js', 'manifest.webmanifest', 'icon-180.png', 'icon-512.png'];
+const CACHE = 'c65-v2';
+const FILES = ['./', 'index.html', 'style.css', 'app.js', 'presets.js', 'manifest.webmanifest', 'icon-180.png', 'icon-512.png', 'fonts/pixelify-lat.woff2', 'fonts/pixelify-cyr.woff2', 'fonts/vt323-lat.woff2'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
