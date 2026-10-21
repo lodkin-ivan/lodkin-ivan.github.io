@@ -178,6 +178,9 @@
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
   }
 
+  // меню всегда последним в DOM и поверх фото/галереи
+  function showMenuLayer() { const m = $('menu'); m.style.zIndex = 10; $('viewfinder').appendChild(m); m.hidden = false; }
+
   // меню снимка: из галереи — Открыть / Сохранить / Удалить, из просмотра — Сохранить / Удалить
   const photoMenuList = () => state.menuFrom === 'gallery' ? ['Открыть', 'Сохранить', 'Удалить'] : ['Сохранить', 'Удалить'];
   function renderPhotoMenu() {
@@ -192,7 +195,7 @@
   function openPhotoMenu() {
     if (state.screen === 'gallery' && !loadGallery().length) return;
     state.menuFrom = state.screen; state.screen = 'photomenu'; state.menuIdx = 0;
-    renderPhotoMenu(); $('menu').hidden = false; setSoft('Выбор', 'Назад');
+    renderPhotoMenu(); showMenuLayer(); setSoft('Выбор', 'Назад');
   }
   function closePhotoMenu() {
     $('menu').hidden = true; state.screen = state.menuFrom;
@@ -271,7 +274,7 @@
       el.appendChild(d);
     });
   }
-  function openMenu() { state.screen = 'menu'; renderMenu(); $('menu').hidden = false; setSoft('Выбор', 'Назад'); }
+  function openMenu() { state.screen = 'menu'; renderMenu(); showMenuLayer(); setSoft('Выбор', 'Назад'); }
   function closeMenu() { $('menu').hidden = true; state.screen = 'live'; setSoft('Опции', 'Галерея'); updateHud(); }
   function menuSelect() {
     const i = state.menuIdx;

@@ -1,4 +1,4 @@
-const CACHE = 'c65-v2';
+const CACHE = 'c65-v3';
 const FILES = ['./', 'index.html', 'style.css', 'app.js', 'presets.js', 'manifest.webmanifest', 'icon-180.png', 'icon-512.png', 'fonts/pixelify-lat.woff2', 'fonts/pixelify-cyr.woff2', 'fonts/vt323-lat.woff2'];
 
 self.addEventListener('install', (e) => {
@@ -9,7 +9,7 @@ self.addEventListener('activate', (e) => {
 });
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(fetch(e.request).then((r) => {
+  e.respondWith(fetch(e.request, { cache: 'no-cache' }).then((r) => {
     const copy = r.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); return r;
   }).catch(() => caches.match(e.request)));
 });
