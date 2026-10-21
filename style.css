@@ -74,3 +74,6 @@ body {
 #shutter { width: 21vmin !important; max-width: 86px !important; background: radial-gradient(circle at 40% 30%, #7a828f, #323740) !important; }
 #shutter span { display: block; width: 46%; aspect-ratio: 1; margin: auto; border-radius: 50%; background: var(--siemens); box-shadow: inset 0 0 6px #003a4c; }
 [hidden] { display: none !important; }
+#gallery { z-index: 2; }
+#photoView { z-index: 3; }
+#menu { z-index: 4; }
